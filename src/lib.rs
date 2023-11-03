@@ -19,6 +19,11 @@ pub async fn future_4() -> i32 {
 }
 
 #[napi]
+pub async fn maybe_future_4() -> Result<i32> {
+  Ok(always_4().await)
+}
+
+#[napi]
 pub struct MyNumber {
   pub num: i32
 }
@@ -39,5 +44,19 @@ impl MyNumber {
   pub async fn future_4() -> Self {
     let num = future_4().await;
     Self { num }
+  }
+
+  #[napi(factory)]
+  pub async fn maybe_future_4() -> Result<Self> {
+    let async_result = tokio::task::spawn(maybe_future_4()).await;
+    // Unwrap JoinError
+    let maybe_num = match async_result {
+      Ok(num) => num,
+      Err(e) => return Err(Error::from_reason(format!("failed to value from future: {e}")))
+    };
+    match maybe_num {
+      Ok(num) => Ok(Self { num }),
+      Err(e) => Err(Error::from_reason(format!("maybe_future_4 returned an error: {e}")))
+    }
   }
 }
