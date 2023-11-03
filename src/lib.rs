@@ -34,4 +34,10 @@ impl MyNumber {
   pub fn now_4() -> Self {
     Self { num: 4 }
   }
+
+  #[napi(factory)]
+  pub async fn future_4() -> Self {
+    let num = future_4().await;
+    Self { num }
+  }
 }
